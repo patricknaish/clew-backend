@@ -35,37 +35,32 @@ if ('development' === app.get('env')) {
 
 /* GET routes */
 app.get("/", routes.index.get);
-app.get("/user", routes.user.listing.get);
-app.get("/user/:uid", routes.user.get);
-app.get("/question", routes.question.listing.get);
-app.get("/question/:qid", routes.question.get);
-app.get("/question/:qid/answer", routes.question.answer.listing.get);
-app.get("/question/:qid/answer/:aid", routes.question.answer.get);
-app.get("/question/:qid/answer/:aid/comment/:cid", routes.question.answer.comment.get);
-app.get("/question/:qid/answer/:aid/comment", routes.question.answer.comment.listing.get);
-app.get("/question/:qid/comment", routes.question.comment.listing.get);
-app.get("/question/:qid/comment/:cid", routes.question.comment.get);
+app.get("/location", routes.location.listing.get);
+app.get("/location/:lid", routes.location.get);
+app.get("/location/:lid/path", routes.location.path.listing.get);
+app.get("/location/:lid/path/:pid", routes.location.path.get);
+app.get("/location/:lid/path/:pid/segment", routes.location.path.segment.listing.get);
+app.get("/location/:lid/path/:pid/segment/:sid", routes.location.path.segment.get);
+app.get("/location/:lid/path/:pid/annotation/", routes.location.path.annotation.listing.get);
+app.get("/location/:lid/path/:pid/annotation/:aid", routes.location.path.annotation.get);
 
 /* POST routes */
-app.post("/user", routes.user.post);
-app.post("/question", routes.question.post);
-app.post("/question/:qid/answer", routes.question.answer.post);
-app.post("/question/:qid/answer/:aid/comment", routes.question.answer.comment.post);
-app.post("/question/:qid/comment", routes.question.comment.post);
+app.post("/location", routes.location.post);
+app.post("/location/:lid/path", routes.location.path.post);
+app.post("/location/:lid/path/:pid/segment", routes.location.path.segment.post);
+app.post("/location/:lid/path/:pid/annotation", routes.location.path.annotation.post);
 
 /* PUT routes */
-app.put("/user/:uid", routes.user.put);
-app.put("/question/:qid", routes.question.put);
-app.put("/question/:qid/answer/:aid", routes.question.answer.put);
-app.put("/question/:qid/answer/:aid/comment/:cid", routes.question.answer.comment.put);
-app.put("/question/:qid/comment/:cid", routes.question.comment.put);
+app.put("/location/:lid", routes.location.put);
+app.put("/location/:lid/path/:pid", routes.location.path.put);
+app.put("/location/:lid/path/:pid/segment/:sid", routes.location.path.segment.put);
+app.put("/location/:lid/path/:pid/annotation/:aid", routes.location.path.annotation.put);
 
 /* DELETE routes */
-app.delete("/user/:uid", routes.user.delete);
-app.delete("/question/:qid", routes.question.delete);
-app.delete("/question/:qid/answer/:aid", routes.question.answer.delete);
-app.delete("/question/:qid/answer/:aid/comment/:cid", routes.question.answer.comment.delete);
-app.delete("/question/:qid/comment/:cid", routes.question.comment.delete);
+app.delete("/location/:lid", routes.location.delete);
+app.delete("/location/:lid/path/:pid", routes.location.path.delete);
+app.delete("/location/:lid/path/:pid/segment/:sid", routes.location.path.segment.delete);
+app.delete("/location/:lid/path/:pid/annotation/:aid", routes.location.path.annotation.delete);
 
 /* Initialise server */
 http.createServer(app).listen(app.get('port'), function () {
