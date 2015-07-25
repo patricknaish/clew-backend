@@ -3,73 +3,33 @@
 /* Status code constants */
 var CREATED = 201, DELETED = 204, BAD_REQUEST = 400, NOT_FOUND = 404, SERVICE_UNAVAILABLE = 503;
 
-/* Home page */
-exports.index = {
+/* List segments on a path */
+var annotation_listing = {
     "get": function (req, res) {
-        res.json({
-            "links": {
-                "questions": "/question",
-                "users": "/user",
-                "self": "/"
-            }
-        });
-    }
-};
-
-/* List answers on a question */
-var answer_listing = {
-    "get": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
+        /* Check the location exists */
+        req.models.location.get(req.params.lid, function (err, location) {
             if (err) {
                 res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
+                res.json({"error": "No location found for " + req.params.lid});
                 return;
             }
-            /* Find all answers with the specified question_id */
-            req.models.question_answer.find({question_id: req.params.qid}, function (err, answers) {
+            /* Find all paths with the specified location_id */
+            req.models.location_path.get({location_id: req.params.lid}, function (err, paths) {
                 if (err) {
                     res.statusCode = NOT_FOUND;
-                    res.json({"error": "No answers found for question " + req.params.qid});
+                    res.json({"error": "No paths found for location " + req.params.lid});
                     return;
                 }
-                var body = [], i;
-                for (i = 0; i < answers.length; i += 1) {
-                    body.push(answers[i].render());
-                }
-                res.json(body);
-            });
-        });
-    }
-};
 
-/* List comments on an answer */
-var answer_comment_listing = {
-    "get": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
-            if (err) {
-                res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
-                return;
-            }
-            /* Check the answer exists */
-            req.models.question_answer.get(req.params.aid, function (err, answer) {
-                if (err) {
-                    res.statusCode = NOT_FOUND;
-                    res.json({"error": "No answer found for " + req.params.aid});
-                    return;
-                }
-                /* Find all comments with the specified answer_id */
-                req.models.answer_comment.find({answer_id: req.params.aid}, function (err, comments) {
+                req.models.path_annotation.find({path_id: req.params.pid}, function (err, annotation) {
                     if (err) {
                         res.statusCode = NOT_FOUND;
-                        res.json({"error": "No comments found for answer " + req.params.aid});
+                        res.json({"error": "No annotations found for path " + req.params.pid});
                         return;
                     }
                     var body = [], i;
-                    for (i = 0; i < comments.length; i += 1) {
-                        body.push(comments[i].render());
+                    for (i = 0; i < annotation.length; i += 1) {
+                        body.push(annotation[i].render());
                     }
                     res.json(body);
                 });
@@ -78,57 +38,185 @@ var answer_comment_listing = {
     }
 };
 
-/* Interact with comments on an answer */
-var answer_comment = {
+/* Interact with segments on a path */
+var path_annotation = {
     "get": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
+        /* Check the location exists */
+        req.models.location.get(req.params.lid, function (err, location) {
             if (err) {
                 res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
+                res.json({"error": "No location found for " + req.params.lid});
                 return;
             }
-            /* Check the answer exists */
-            req.models.question_answer.get(req.params.aid, function (err, answer) {
+            /* Get the path with the specified id */
+            req.models.location_path.get(req.params.pid, function (err, path) {
                 if (err) {
                     res.statusCode = NOT_FOUND;
-                    res.json({"error": "No answer found for " + req.params.aid});
+                    res.json({"error": "No path found for " + req.params.pid});
                     return;
                 }
-                /* Get the comment with the specified id */
-                req.models.answer_comment.get(req.params.cid, function (err, comment) {
+                req.models.path_annotation.get(req.params.aid, function (err, annotation) {
                     if (err) {
                         res.statusCode = NOT_FOUND;
-                        res.json({"error": "No comment found for " + req.params.cid});
+                        res.json({"error": "No annotation found for " + req.params.aid});
                         return;
                     }
-                    res.json(comment.render());
+                    res.json(annotation.render());
                 });
             });
         });
     },
     "post": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
+        /* Check the location exists */
+        req.models.location.get(req.params.lid, function (err, location) {
             if (err) {
                 res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
+                res.json({"error": "No location found for " + req.params.lid});
                 return;
             }
-            /* Check the answer exists */
-            req.models.question_answer.get(req.params.aid, function (err, answer) {
+
+            req.models.location_path.get(req.params.pid, function (err, path) {
                 if (err) {
                     res.statusCode = NOT_FOUND;
-                    res.json({"error": "No answer found for " + req.params.aid});
+                    res.json({"error": "No path found for " + req.params.pid});
                     return;
                 }
-                /* Create the comment with the specified options */
-                req.models.answer_comment.create([
+
+                req.models.path_segment.get(req.body.start_segment, function (err, start_segment) {
+                    if (err) {
+                        res.statusCode = NOT_FOUND;
+                        res.json({"error": "No segment found for " + req.body.start_segment});
+                        return;
+                    }
+
+                    req.models.path_segment.get(req.body.end_segment, function (err, end_segment) {
+                        if (err) {
+                            res.statusCode = NOT_FOUND;
+                            res.json({"error": "No segment found for " + req.body.end_segment});
+                            return;
+                        }
+
+                        /* Create the path with the specified options */
+                        req.models.path_annotation.create([
+                            {
+                                "start_segment": req.body.start_segment,
+                                "end_segment": req.body.end_segment,
+                                "type": req.body.type,
+                                "message": req.body.message,
+                                "created": new Date()
+                            }
+                        ], function (err, items) {
+                            if (err) {
+                                /* Notify the user if they are missing fields */
+                                if (err.msg === "required") {
+                                    res.statusCode = BAD_REQUEST;
+                                    res.json({"error": "Required field " + err.property + " was not supplied"});
+                                    return;
+                                }
+                                res.statusCode = SERVICE_UNAVAILABLE;
+                                res.json({"error": "Could not create new annotation on path " + req.params.pid});
+                                return;
+                            }
+                            res.setHeader("Location", items[0].render().links.self);
+                            res.statusCode = CREATED;
+                            res.json(items[0].render());
+                        });
+                    });
+                });
+            });
+        });
+    },
+    "listing": annotation_listing
+};
+
+/* List segments on a path */
+var segment_listing = {
+    "get": function (req, res) {
+        /* Check the location exists */
+        req.models.location.get(req.params.lid, function (err, location) {
+            if (err) {
+                res.statusCode = NOT_FOUND;
+                res.json({"error": "No location found for " + req.params.lid});
+                return;
+            }
+            /* Find all paths with the specified location_id */
+            req.models.location_path.get({location_id: req.params.lid}, function (err, paths) {
+                if (err) {
+                    res.statusCode = NOT_FOUND;
+                    res.json({"error": "No paths found for location " + req.params.lid});
+                    return;
+                }
+
+                req.models.path_segment.find({path_id: req.params.pid}, function (err, segments) {
+                    if (err) {
+                        res.statusCode = NOT_FOUND;
+                        res.json({"error": "No segments found for path " + req.params.pid});
+                        return;
+                    }
+                    var body = [], i;
+                    for (i = 0; i < segments.length; i += 1) {
+                        body.push(segments[i].render());
+                    }
+                    res.json(body);
+                });
+            });
+        });
+    }
+};
+
+/* Interact with segments on a path */
+var path_segment = {
+    "get": function (req, res) {
+        /* Check the location exists */
+        req.models.location.get(req.params.lid, function (err, location) {
+            if (err) {
+                res.statusCode = NOT_FOUND;
+                res.json({"error": "No location found for " + req.params.lid});
+                return;
+            }
+            /* Get the path with the specified id */
+            req.models.location_path.get(req.params.pid, function (err, path) {
+                if (err) {
+                    res.statusCode = NOT_FOUND;
+                    res.json({"error": "No path found for " + req.params.pid});
+                    return;
+                }
+                req.models.path_segment.get(req.params.aid, function (err, segment) {
+                    if (err) {
+                        res.statusCode = NOT_FOUND;
+                        res.json({"error": "No segment found for " + req.params.aid});
+                        return;
+                    }
+                    res.json(segment.render());
+                });
+            });
+        });
+    },
+    "post": function (req, res) {
+        /* Check the location exists */
+        req.models.location.get(req.params.lid, function (err, location) {
+            if (err) {
+                res.statusCode = NOT_FOUND;
+                res.json({"error": "No location found for " + req.params.lid});
+                return;
+            }
+
+            req.models.location_path.get(req.params.pid, function (err, path) {
+                if (err) {
+                    res.statusCode = NOT_FOUND;
+                    res.json({"error": "No path found for " + req.params.pid});
+                    return;
+                }
+
+                /* Create the path with the specified options */
+                req.models.path_segment.create([
                     {
-                        "comment": req.body.comment,
-                        "author_id": req.body.author_id,
-                        "created": new Date(),
-                        "answer_id": req.params.aid
+                        "bearing": req.body.bearing,
+                        "distance": req.body.distance,
+                        "elevation": req.body.elevation,
+                        "angle_format": req.body.angle_format,
+                        "distance_format": req.body.distace_format,
+                        "created": new Date()
                     }
                 ], function (err, items) {
                     if (err) {
@@ -139,139 +227,79 @@ var answer_comment = {
                             return;
                         }
                         res.statusCode = SERVICE_UNAVAILABLE;
-                        res.json({"error": "Could not create new comment on answer " + req.params.aid});
+                        res.json({"error": "Could not create new segment on path " + req.params.pid});
                         return;
                     }
-                    /* Workaround for creation autofetch failure, to allow for correct rendering of URL */
-                    req.models.answer_comment.get(items[0].id, function (err, comment) {
-                        if (err) {
-                            res.statusCode = NOT_FOUND;
-                            res.json({"error": "No comment found for " + items[0].id});
-                            return;
-                        }
-                        res.setHeader("Location", comment.render().links.self);
-                        res.statusCode = CREATED;
-                        res.json(comment.render());
-                    });
-                    /* This will work correctly if bug is fixed */
-                    // res.setHeader("Location", items[0].render().links.self);
-                    // res.statusCode = CREATED;
-                    // res.json(items[0].render());
+                    res.setHeader("Location", items[0].render().links.self);
+                    res.statusCode = CREATED;
+                    res.json(items[0].render());
                 });
             });
         });
     },
-    "put": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
-            if (err) {
-                res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
-                return;
-            }
-            /* Check the answer exists */
-            req.models.question_answer.get(req.params.aid, function (err, answer) {
-                if (err) {
-                    res.statusCode = NOT_FOUND;
-                    res.json({"error": "No answer found for " + req.params.aid});
-                    return;
-                }
-                /* Check the comment exists */
-                req.models.answer_comment.get(req.params.cid, function (err, comment) {
-                    if (err) {
-                        res.statusCode = NOT_FOUND;
-                        res.json({"error": "No comment found for  " + req.params.cid});
-                        return;
-                    }
-                    if (req.body.comment) { comment.comment = req.body.comment; }
-                    comment.updated = new Date();
-                    /* Update the comment */
-                    comment.save(function (err) {
-                        if (err) {
-                            res.statusCode = SERVICE_UNAVAILABLE;
-                            res.json({"error": "Could not update comment " + req.params.cid});
-                            return;
-                        }
-                        res.json(comment.render());
-                    });
-                });
-            });
-        });
-    },
-    "delete": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
-            if (err) {
-                res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
-                return;
-            }
-            /* Check the answer exists */
-            req.models.question_answer.get(req.params.aid, function (err, answer) {
-                if (err) {
-                    res.statusCode = NOT_FOUND;
-                    res.json({"error": "No answer found for " + req.params.aid});
-                    return;
-                }
-                /* Check the comment exists */
-                req.models.answer_comment.get(req.params.cid, function (err, comment) {
-                    if (err) {
-                        res.statusCode = NOT_FOUND;
-                        res.json({"error": "No comment found for  " + req.params.cid});
-                        return;
-                    }
-                    /* Delete the comment */
-                    comment.remove(function (err) {
-                        if (err) {
-                            res.statusCode = SERVICE_UNAVAILABLE;
-                            res.json({"error": "Could not delete comment " + req.params.cid});
-                            return;
-                        }
-                        res.statusCode = DELETED;
-                        res.json({"status": "removed"});
-                    });
-                });
-            });
-        });
-    },
-    "listing": answer_comment_listing
+    "listing": segment_listing
 };
 
-/* Interact with answers on a question */
-var question_answer = {
+/* List paths on a location */
+var path_listing = {
     "get": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
+        /* Check the location exists */
+        req.models.location.get(req.params.lid, function (err, location) {
             if (err) {
                 res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
+                res.json({"error": "No location found for " + req.params.lid});
                 return;
             }
-            /* Get the answer with the specified id */
-            req.models.question_answer.get(req.params.aid, function (err, answer) {
+            /* Find all paths with the specified location_id */
+            req.models.location_path.find({location_id: req.params.lid}, function (err, paths) {
                 if (err) {
                     res.statusCode = NOT_FOUND;
-                    res.json({"error": "No answer found for " + req.params.aid});
+                    res.json({"error": "No paths found for location " + req.params.lid});
                     return;
                 }
-                res.json(answer.render());
+                var body = [], i;
+                for (i = 0; i < paths.length; i += 1) {
+                    body.push(paths[i].render());
+                }
+                res.json(body);
+            });
+        });
+    }
+};
+
+/* Interact with paths on a location */
+var location_path = {
+    "get": function (req, res) {
+        /* Check the location exists */
+        req.models.location.get(req.params.lid, function (err, location) {
+            if (err) {
+                res.statusCode = NOT_FOUND;
+                res.json({"error": "No location found for " + req.params.lid});
+                return;
+            }
+            /* Get the path with the specified id */
+            req.models.location_path.get(req.params.pid, function (err, path) {
+                if (err) {
+                    res.statusCode = NOT_FOUND;
+                    res.json({"error": "No path found for " + req.params.pid});
+                    return;
+                }
+                res.json(path.render());
             });
         });
     },
     "post": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
+        /* Check the location exists */
+        req.models.location.get(req.params.lid, function (err, location) {
             if (err) {
                 res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
+                res.json({"error": "No location found for " + req.params.lid});
                 return;
             }
-            /* Create the answer with the specified options */
-            req.models.question_answer.create([
+            /* Create the path with the specified options */
+            req.models.location_path.create([
                 {
-                    "answer" : req.body.answer,
-                    "author_id": req.body.author_id,
-                    "question_id": req.params.qid,
+                    "name" : req.body.name,
                     "created": new Date()
                 }
             ], function (err, items) {
@@ -283,7 +311,7 @@ var question_answer = {
                         return;
                     }
                     res.statusCode = SERVICE_UNAVAILABLE;
-                    res.json({"error": "Could not create new answer on question " + req.params.qid});
+                    res.json({"error": "Could not create new path on location " + req.params.lid});
                     return;
                 }
                 res.setHeader("Location", items[0].render().links.self);
@@ -293,56 +321,55 @@ var question_answer = {
         });
     },
     "put": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
+        /* Check the location exists */
+        req.models.location.get(req.params.lid, function (err, location) {
             if (err) {
                 res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
+                res.json({"error": "No location found for " + req.params.lid});
                 return;
             }
-            /* Check the answer exists */
-            req.models.question_answer.get(req.params.aid, function (err, answer) {
+            /* Check the path exists */
+            req.models.location_path.get(req.params.pid, function (err, path) {
                 if (err) {
                     res.statusCode = NOT_FOUND;
-                    res.json({"error": "No answer found for " + req.params.aid});
+                    res.json({"error": "No path found for " + req.params.pid});
                     return;
                 }
-                if (req.body.answer) { answer.answer = req.body.answer; }
-                if (req.body.author_id) { answer.author_id = req.body.author_id; }
-                answer.updated = new Date();
-                /* Update the answer */
-                answer.save(function (err) {
+                if (req.body.name) { path.name = req.body.name; }
+                path.updated = new Date();
+                /* Update the path */
+                path.save(function (err) {
                     if (err) {
                         res.statusCode = SERVICE_UNAVAILABLE;
-                        res.json({"error": "Could not update answer " + req.params.aid});
+                        res.json({"error": "Could not update path " + req.params.pid});
                         return;
                     }
-                    res.json(answer.render());
+                    res.json(path.render());
                 });
             });
         });
     },
     "delete": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
+        /* Check the location exists */
+        req.models.location.get(req.params.lid, function (err, location) {
             if (err) {
                 res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
+                res.json({"error": "No location found for " + req.params.lid});
                 return;
             }
-            /* Check the answer exists */
-            req.models.question_answer.get(req.params.aid, function (err, answer) {
+            /* Check the path exists */
+            req.models.location_path.get(req.params.pid, function (err, path) {
                 if (err) {
                     res.statusCode = NOT_FOUND;
-                    res.json({"error": "No answer found for " + req.params.aid});
+                    res.json({"error": "No path found for " + req.params.pid});
                     return;
                 }
-                /* Delete the answer and its comments */
-                answer.removeChildren(function () {
-                    answer.remove(function (err) {
+                /* Delete the path and its comments */
+                path.removeChildren(function () {
+                    path.remove(function (err) {
                         if (err) {
                             res.statusCode = SERVICE_UNAVAILABLE;
-                            res.json({"error": "Could not delete answer " + req.params.aid});
+                            res.json({"error": "Could not delete path " + req.params.pid});
                             return;
                         }
                         res.statusCode = DELETED;
@@ -352,308 +379,61 @@ var question_answer = {
             });
         });
     },
-    "listing": answer_listing,
-    "comment": answer_comment
-};
-
-/* List comments on a question */
-var question_comment_listing = {
-    "get": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
-            if (err) {
-                res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
-                return;
-            }
-            /* Find all comments with the specified question_id */
-            req.models.question_comment.find({question_id: req.params.qid}, function (err, comments) {
-                if (err) {
-                    res.statusCode = NOT_FOUND;
-                    res.json({"error": "No comments found for question " + req.params.qid});
-                    return;
-                }
-                var body = [], i;
-                for (i = 0; i < comments.length; i += 1) {
-                    body.push(comments[i].render());
-                }
-                res.json(body);
-            });
-        });
-    }
-};
-
-/* Interact with comments on a question */
-var question_comment = {
-    "get": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
-            if (err) {
-                res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
-                return;
-            }
-            /* Get the comment with the specified id */
-            req.models.question_comment.get(req.params.cid, function (err, comment) {
-                if (err) {
-                    res.statusCode = NOT_FOUND;
-                    res.json({"error": "No comment found for " + req.params.cid});
-                    return;
-                }
-                res.json(comment.render());
-            });
-        });
-    },
-    "post": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
-            if (err) {
-                res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
-                return;
-            }
-            /* Create the comment with the specified options */
-            req.models.question_comment.create([
-                {
-                    "comment": req.body.comment,
-                    "author_id": req.body.author_id,
-                    "created": new Date(),
-                    "question_id": req.params.qid
-                }
-            ], function (err, items) {
-                if (err) {
-                    /* Notify the user if they are missing fields */
-                    if (err.msg === "required") {
-                        res.statusCode = BAD_REQUEST;
-                        res.json({"error": "Required field " + err.property + " was not supplied"});
-                        return;
-                    }
-                    res.statusCode = SERVICE_UNAVAILABLE;
-                    res.json({"error": "Could not create new comment on question " + req.params.qid});
-                    return;
-                }
-                res.setHeader("Location", items[0].render().links.self);
-                res.statusCode = CREATED;
-                res.json(items[0].render());
-            });
-        });
-    },
-    "put": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
-            if (err) {
-                res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
-                return;
-            }
-            /* Check the comment exists */
-            req.models.question_comment.get(req.params.cid, function (err, comment) {
-                if (err) {
-                    res.statusCode = NOT_FOUND;
-                    res.json({"error": "No comment found for " + req.params.cid});
-                    return;
-                }
-                if (req.body.comment) { comment.comment = req.body.comment; }
-                comment.updated = new Date();
-                /* Update the comment */
-                comment.save(function (err) {
-                    if (err) {
-                        res.statusCode = SERVICE_UNAVAILABLE;
-                        res.json({"error": "Could not update comment " + req.params.cid});
-                        return;
-                    }
-                    res.json(comment.render());
-                });
-            });
-        });
-    },
-    "delete": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
-            if (err) {
-                res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
-                return;
-            }
-            /* Check the comment exists */
-            req.models.question_comment.get(req.params.cid, function (err, comment) {
-                if (err) {
-                    res.statusCode = NOT_FOUND;
-                    res.json({"error": "No comment found for " + req.params.cid});
-                    return;
-                }
-                /* Delete the comment */
-                comment.remove(function (err) {
-                    if (err) {
-                        res.statusCode = SERVICE_UNAVAILABLE;
-                        res.json({"error": "Could not delete comment " + req.params.cid});
-                        return;
-                    }
-                    res.statusCode = DELETED;
-                    res.json({"status": "removed"});
-                });
-            });
-        });
-    },
-    "listing": question_comment_listing
-};
-
-/* List questions */
-var question_listing = {
-    "get": function (req, res) {
-        /* Find all questions */
-        req.models.question.find({}, function (err, questions) {
-            if (err) {
-                res.statusCode = NOT_FOUND;
-                res.json({"error": "No questions found"});
-                return;
-            }
-            var body = [], i;
-            for (i = 0; i < questions.length; i += 1) {
-                body.push(questions[i].render());
-            }
-            res.json(body);
-        });
-    }
-};
-
-/* Interact with a question */
-exports.question = {
-    "get": function (req, res) {
-        /* Get the question with the specified id */
-        req.models.question.get(req.params.qid, function (err, question) {
-            if (err) {
-                res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
-                return;
-            }
-            res.json(question.render());
-        });
-    },
-    "post": function (req, res) {
-        /* Create the question with the specified options */
-        req.models.question.create([
-            {
-                "title": req.body.title,
-                "question": req.body.question,
-                "author_id": req.body.author_id,
-                "created": new Date()
-            }
-        ], function (err, items) {
-            if (err) {
-                if (err.msg === "required") {
-                    /* Notify the user if they are missing fields */
-                    res.statusCode = BAD_REQUEST;
-                    res.json({"error": "Required field " + err.property + " was not supplied"});
-                    return;
-                }
-                res.statusCode = SERVICE_UNAVAILABLE;
-                res.json({"error": "Could not create new question"});
-                return;
-            }
-            res.setHeader("Location", items[0].render().links.self);
-            res.statusCode = CREATED;
-            res.json(items[0].render());
-        });
-    },
-    "put": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
-            if (err) {
-                res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
-                return;
-            }
-            if (req.body.question) { question.question = req.body.question; }
-            if (req.body.title) { question.title = req.body.title; }
-            question.updated = new Date();
-            /* Update the question */
-            question.save(function (err) {
-                if (err) {
-                    res.statusCode = SERVICE_UNAVAILABLE;
-                    res.json({"error": "Could not update question " + req.params.qid});
-                    return;
-                }
-                res.json(question.render());
-            });
-        });
-    },
-    "delete": function (req, res) {
-        /* Check the question exists */
-        req.models.question.get(req.params.qid, function (err, question) {
-            if (err) {
-                res.statusCode = NOT_FOUND;
-                res.json({"error": "No question found for " + req.params.qid});
-                return;
-            }
-            /* Delete the question and its comments */
-            question.removeChildren(function () {
-                question.remove(function (err) {
-                    if (err) {
-                        res.statusCode = SERVICE_UNAVAILABLE;
-                        res.json({"error": "Could not delete question " + req.params.qid});
-                        return;
-                    }
-                    res.statusCode = DELETED;
-                    res.json({"status": "removed"});
-                });
-            });
-        });
-    },
-    "listing": question_listing,
-    "answer": question_answer,
-    "comment": question_comment
+    "listing": path_listing,
+    "segment": path_segment,
+    "annotation": path_annotation
 };
 
 /* List users */
-var user_listing = {
+var location_listing = {
     "get": function (req, res) {
         /* Find all users */
-        req.models.user.find({}, function (err, users) {
+        req.models.location.find({}, function (err, locations) {
             if (err) {
                 res.statusCode = NOT_FOUND;
-                res.json({"error": "No users found"});
+                res.json({"error": "No locations found"});
                 return;
             }
             var body = [], i;
-            for (i = 0; i < users.length; i += 1) {
-                body.push(users[i].render());
+            for (i = 0; i < locations.length; i += 1) {
+                body.push(locations[i].render());
             }
             res.json(body);
         });
     }
 };
 
-/* Interact with a user */
-exports.user = {
+/* Interact with a location */
+exports.location = {
     "get": function (req, res) {
-        /* Get the user with the specified id */
-        req.models.user.get(req.params.uid, function (err, user) {
+        /* Get the location with the specified id */
+        req.models.location.get(req.params.lid, function (err, location) {
             if (err) {
                 res.statusCode = NOT_FOUND;
-                res.json({"error": "No user found for " + req.params.uid});
+                res.json({"error": "No location found for " + req.params.lid});
                 return;
             }
-            res.json(user.render());
+            res.json(location.render());
         });
     },
     "post": function (req, res) {
-        /* Create the comment with the specified options */
-        req.models.user.create([
+        /* Create the location with the specified options */
+        req.models.location.create([
             {
                 "name": req.body.name,
+                "start_point": req.body.start_point,
                 "created": new Date()
             }
         ], function (err, items) {
             if (err) {
-                /* Notify the user if they are missing fields */
                 if (err.msg === "required") {
+                    /* Notify the user if they are missing fields */
                     res.statusCode = BAD_REQUEST;
                     res.json({"error": "Required field " + err.property + " was not supplied"});
                     return;
                 }
                 res.statusCode = SERVICE_UNAVAILABLE;
-                res.json({"error": "Could not create new user"});
+                res.json({"error": "Could not create new location"});
                 return;
             }
             res.setHeader("Location", items[0].render().links.self);
@@ -662,40 +442,41 @@ exports.user = {
         });
     },
     "put": function (req, res) {
-        /* Check the user exists */
-        req.models.user.get(req.params.uid, function (err, user) {
+        /* Check the location exists */
+        req.models.location.get(req.params.lid, function (err, location) {
             if (err) {
                 res.statusCode = NOT_FOUND;
-                res.json({"error": "No user found for " + req.params.uid});
+                res.json({"error": "No location found for " + req.params.lid});
                 return;
             }
-            if (req.body.name) { user.name = req.body.name; }
-            user.updated = new Date();
-            /* Update the user */
-            user.save(function (err) {
+            if (req.body.start_point) { location.start_point = req.body.start_point; }
+            if (req.body.name) { location.name = req.body.name; }
+            location.updated = new Date();
+            /* Update the location */
+            location.save(function (err) {
                 if (err) {
                     res.statusCode = SERVICE_UNAVAILABLE;
-                    res.json({"error": "Could not update user " + req.params.uid});
+                    res.json({"error": "Could not update location " + req.params.lid});
                     return;
                 }
-                res.json(user.render());
+                res.json(location.render());
             });
         });
     },
     "delete": function (req, res) {
-        /* Check the user exists */
-        req.models.user.get(req.params.uid, function (err, user) {
+        /* Check the location exists */
+        req.models.location.get(req.params.lid, function (err, location) {
             if (err) {
                 res.statusCode = NOT_FOUND;
-                res.json({"error": "No user found for " + req.params.uid});
+                res.json({"error": "No location found for " + req.params.lid});
                 return;
             }
-            /* Delete the user */
-            user.removeChildren(function () {
-                user.remove(function (err) {
+            /* Delete the location and its comments */
+            location.removeChildren(function () {
+                location.remove(function (err) {
                     if (err) {
                         res.statusCode = SERVICE_UNAVAILABLE;
-                        res.json({"error": "Could not delete user " + req.params.uid});
+                        res.json({"error": "Could not delete location " + req.params.lid});
                         return;
                     }
                     res.statusCode = DELETED;
@@ -704,5 +485,6 @@ exports.user = {
             });
         });
     },
-    "listing": user_listing
+    "listing": location_listing,
+    "path": location_path
 };

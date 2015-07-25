@@ -34,14 +34,13 @@ if ('development' === app.get('env')) {
 }
 
 /* GET routes */
-app.get("/", routes.index.get);
 app.get("/location", routes.location.listing.get);
 app.get("/location/:lid", routes.location.get);
 app.get("/location/:lid/path", routes.location.path.listing.get);
 app.get("/location/:lid/path/:pid", routes.location.path.get);
 app.get("/location/:lid/path/:pid/segment", routes.location.path.segment.listing.get);
 app.get("/location/:lid/path/:pid/segment/:sid", routes.location.path.segment.get);
-app.get("/location/:lid/path/:pid/annotation/", routes.location.path.annotation.listing.get);
+app.get("/location/:lid/path/:pid/annotation", routes.location.path.annotation.listing.get);
 app.get("/location/:lid/path/:pid/annotation/:aid", routes.location.path.annotation.get);
 
 /* POST routes */
@@ -53,14 +52,10 @@ app.post("/location/:lid/path/:pid/annotation", routes.location.path.annotation.
 /* PUT routes */
 app.put("/location/:lid", routes.location.put);
 app.put("/location/:lid/path/:pid", routes.location.path.put);
-app.put("/location/:lid/path/:pid/segment/:sid", routes.location.path.segment.put);
-app.put("/location/:lid/path/:pid/annotation/:aid", routes.location.path.annotation.put);
 
 /* DELETE routes */
 app.delete("/location/:lid", routes.location.delete);
 app.delete("/location/:lid/path/:pid", routes.location.path.delete);
-app.delete("/location/:lid/path/:pid/segment/:sid", routes.location.path.segment.delete);
-app.delete("/location/:lid/path/:pid/annotation/:aid", routes.location.path.annotation.delete);
 
 /* Initialise server */
 http.createServer(app).listen(app.get('port'), function () {
