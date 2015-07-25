@@ -99,8 +99,8 @@ var path_annotation = {
                         /* Create the path with the specified options */
                         req.models.path_annotation.create([
                             {
-                                "start_segment": req.body.start_segment,
-                                "end_segment": req.body.end_segment,
+                                "start_segment_id": req.body.start_segment_id,
+                                "end_segment_id": req.body.end_segment_id,
                                 "type": req.body.type,
                                 "message": req.body.message,
                                 "created": new Date()
@@ -117,7 +117,7 @@ var path_annotation = {
                                 res.json({"error": "Could not create new annotation on path " + req.params.pid});
                                 return;
                             }
-                            res.setHeader("Location", items[0].render().links.self);
+                            res.setHeader("Location", items[0].render().self);
                             res.statusCode = CREATED;
                             res.json(items[0].render());
                         });
@@ -230,7 +230,7 @@ var path_segment = {
                         res.json({"error": "Could not create new segment on path " + req.params.pid});
                         return;
                     }
-                    res.setHeader("Location", items[0].render().links.self);
+                    res.setHeader("Location", items[0].render().self);
                     res.statusCode = CREATED;
                     res.json(items[0].render());
                 });
@@ -314,7 +314,7 @@ var location_path = {
                     res.json({"error": "Could not create new path on location " + req.params.lid});
                     return;
                 }
-                res.setHeader("Location", items[0].render().links.self);
+                res.setHeader("Location", items[0].render().self);
                 res.statusCode = CREATED;
                 res.json(items[0].render());
             });
@@ -436,7 +436,7 @@ exports.location = {
                 res.json({"error": "Could not create new location"});
                 return;
             }
-            res.setHeader("Location", items[0].render().links.self);
+            res.setHeader("Location", items[0].render().self);
             res.statusCode = CREATED;
             res.json(items[0].render());
         });
