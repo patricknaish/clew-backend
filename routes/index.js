@@ -14,7 +14,7 @@ var annotation_listing = {
                 return;
             }
             /* Find all paths with the specified location_id */
-            req.models.location_path.get({location_id: req.params.lid}, function (err, paths) {
+            req.models.location_path.get(req.params.pid, function (err, paths) {
                 if (err) {
                     res.statusCode = NOT_FOUND;
                     res.json({"error": "No paths found for location " + req.params.lid});
@@ -103,6 +103,7 @@ var path_annotation = {
                                 "end_segment_id": req.body.end_segment_id,
                                 "type": req.body.type,
                                 "message": req.body.message,
+                                "path_id": req.params.pid,
                                 "created": new Date()
                             }
                         ], function (err, items) {
@@ -140,7 +141,7 @@ var segment_listing = {
                 return;
             }
             /* Find all paths with the specified location_id */
-            req.models.location_path.get({location_id: req.params.lid}, function (err, paths) {
+            req.models.location_path.get(req.params.pid, function (err, paths) {
                 if (err) {
                     res.statusCode = NOT_FOUND;
                     res.json({"error": "No paths found for location " + req.params.lid});
@@ -216,6 +217,7 @@ var path_segment = {
                         "elevation": req.body.elevation,
                         "angle_format": req.body.angle_format,
                         "distance_format": req.body.distace_format,
+                        "path_id": req.params.pid,
                         "created": new Date()
                     }
                 ], function (err, items) {
@@ -299,7 +301,8 @@ var location_path = {
             /* Create the path with the specified options */
             req.models.location_path.create([
                 {
-                    "name" : req.body.name,
+                    "name": req.body.name,
+                    "location_id": req.params.lid,
                     "created": new Date()
                 }
             ], function (err, items) {
