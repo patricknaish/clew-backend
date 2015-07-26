@@ -11,6 +11,7 @@
     "orm": "*",
     "sqlite3": "*",
     "db-migrate": "*",
-    "request": "*"
+    "request": "*",
+    "async": "*"
   }
 }

@@ -114,7 +114,7 @@ var path_annotation = {
                                     return;
                                 }
                                 res.statusCode = SERVICE_UNAVAILABLE;
-                                res.json({"error": "Could not create new annotation on path " + req.params.pid});
+                                res.json({"error": "Could not create new annotation on path " + req.params.pid + ": " + err});
                                 return;
                             }
                             res.setHeader("Location", items[0].render().self);
@@ -227,7 +227,7 @@ var path_segment = {
                             return;
                         }
                         res.statusCode = SERVICE_UNAVAILABLE;
-                        res.json({"error": "Could not create new segment on path " + req.params.pid});
+                        res.json({"error": "Could not create new segment on path " + req.params.pid + ": " + err});
                         return;
                     }
                     res.setHeader("Location", items[0].render().self);
@@ -311,7 +311,7 @@ var location_path = {
                         return;
                     }
                     res.statusCode = SERVICE_UNAVAILABLE;
-                    res.json({"error": "Could not create new path on location " + req.params.lid});
+                    res.json({"error": "Could not create new path on location " + req.params.lid + ": " + err});
                     return;
                 }
                 res.setHeader("Location", items[0].render().self);
@@ -341,7 +341,7 @@ var location_path = {
                 path.save(function (err) {
                     if (err) {
                         res.statusCode = SERVICE_UNAVAILABLE;
-                        res.json({"error": "Could not update path " + req.params.pid});
+                        res.json({"error": "Could not update path " + req.params.pid + ": " + err});
                         return;
                     }
                     res.json(path.render());
@@ -369,7 +369,7 @@ var location_path = {
                     path.remove(function (err) {
                         if (err) {
                             res.statusCode = SERVICE_UNAVAILABLE;
-                            res.json({"error": "Could not delete path " + req.params.pid});
+                            res.json({"error": "Could not delete path " + req.params.pid + ": " + err});
                             return;
                         }
                         res.statusCode = DELETED;
@@ -433,7 +433,7 @@ exports.location = {
                     return;
                 }
                 res.statusCode = SERVICE_UNAVAILABLE;
-                res.json({"error": "Could not create new location"});
+                res.json({"error": "Could not create new location: " + err});
                 return;
             }
             res.setHeader("Location", items[0].render().self);
@@ -456,7 +456,7 @@ exports.location = {
             location.save(function (err) {
                 if (err) {
                     res.statusCode = SERVICE_UNAVAILABLE;
-                    res.json({"error": "Could not update location " + req.params.lid});
+                    res.json({"error": "Could not update location " + req.params.lid + ": " + err});
                     return;
                 }
                 res.json(location.render());
@@ -476,7 +476,7 @@ exports.location = {
                 location.remove(function (err) {
                     if (err) {
                         res.statusCode = SERVICE_UNAVAILABLE;
-                        res.json({"error": "Could not delete location " + req.params.lid});
+                        res.json({"error": "Could not delete location " + req.params.lid + ": " + err});
                         return;
                     }
                     res.statusCode = DELETED;

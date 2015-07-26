@@ -17,7 +17,11 @@ exports.define = function (app) {
                 },
                 created: {
                     type: "date",
-                    required: true
+                    required: false
+                },
+                updated: {
+                    type: "date",
+                    required: false
                 }
             }, {
                 methods: {
@@ -58,6 +62,10 @@ exports.define = function (app) {
                     required: true
                 },
                 created: {
+                    type: "date",
+                    required: false
+                },
+                updated: {
                     type: "date",
                     required: false
                 },
