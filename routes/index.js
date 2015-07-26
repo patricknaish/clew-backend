@@ -21,15 +21,15 @@ var annotation_listing = {
                     return;
                 }
 
-                req.models.path_annotation.find({path_id: req.params.pid}, function (err, annotation) {
+                req.models.path_annotation.find({path_id: req.params.pid}, function (err, annotations) {
                     if (err) {
                         res.statusCode = NOT_FOUND;
                         res.json({"error": "No annotations found for path " + req.params.pid});
                         return;
                     }
                     var body = [], i;
-                    for (i = 0; i < annotation.length; i += 1) {
-                        body.push(annotation[i].render());
+                    for (i = 0; i < annotations.length; i += 1) {
+                        body.push(annotations[i].render());
                     }
                     res.json(body);
                 });
@@ -82,17 +82,17 @@ var path_annotation = {
                     return;
                 }
 
-                req.models.path_segment.get(req.body.start_segment, function (err, start_segment) {
+                req.models.path_segment.get(req.body.start_segment_id, function (err, start_segment) {
                     if (err) {
                         res.statusCode = NOT_FOUND;
-                        res.json({"error": "No segment found for " + req.body.start_segment});
+                        res.json({"error": "No segment found for " + req.body.start_segment_id});
                         return;
                     }
 
-                    req.models.path_segment.get(req.body.end_segment, function (err, end_segment) {
+                    req.models.path_segment.get(req.body.end_segment_id, function (err, end_segment) {
                         if (err) {
                             res.statusCode = NOT_FOUND;
-                            res.json({"error": "No segment found for " + req.body.end_segment});
+                            res.json({"error": "No segment found for " + req.body.end_segment_id});
                             return;
                         }
 
@@ -118,9 +118,16 @@ var path_annotation = {
                                 res.json({"error": "Could not create new annotation on path " + req.params.pid + ": " + err});
                                 return;
                             }
-                            res.setHeader("Location", items[0].render().self);
-                            res.statusCode = CREATED;
-                            res.json(items[0].render());
+                            req.models.path_annotation.get(items[0].id, function (err, annotation) {
+                                if (err) {
+                                    res.statusCode = NOT_FOUND;
+                                    res.json({"error": "No annotation found for " + items[0].id});
+                                    return;
+                                }
+                                res.setHeader("Location", annotation.render().self);
+                                res.statusCode = CREATED;
+                                res.json(annotation.render());
+                            });
                         });
                     });
                 });
@@ -232,9 +239,16 @@ var path_segment = {
                         res.json({"error": "Could not create new segment on path " + req.params.pid + ": " + err});
                         return;
                     }
-                    res.setHeader("Location", items[0].render().self);
-                    res.statusCode = CREATED;
-                    res.json(items[0].render());
+                    req.models.path_segment.get(items[0].id, function (err, segment) {
+                        if (err) {
+                            res.statusCode = NOT_FOUND;
+                            res.json({"error": "No segment found for " + items[0].id});
+                            return;
+                        }
+                        res.setHeader("Location", segment.render().self);
+                        res.statusCode = CREATED;
+                        res.json(segment.render());
+                    });
                 });
             });
         });

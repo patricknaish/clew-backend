@@ -247,7 +247,7 @@ exports.define = function (app) {
                 required: true,
                 autoFetch: true
             });
-
+            
             next();
         }
     }));
