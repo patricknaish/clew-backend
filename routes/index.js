@@ -216,7 +216,7 @@ var path_segment = {
                         "distance": req.body.distance,
                         "elevation": req.body.elevation,
                         "angle_format": req.body.angle_format,
-                        "distance_format": req.body.distace_format,
+                        "distance_format": req.body.distance_format,
                         "path_id": req.params.pid,
                         "created": new Date()
                     }
